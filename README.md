@@ -13,6 +13,11 @@ Kenku FM is a desktop application for Windows, MacOS and Linux designed to be th
   <img src="./docs/example.png" alt="Kenku FM Interface" width="738">
 </p>
 
+## What's in this fork?
+I forked this to tweak the program to better fits my needs. So far these are main the differences:
+- All playlists and soundboards appear in the main view/dashboard (i.e. there's no "see all" button anymore)
+- There are search bars in the playlists and soundboards panels to filter through the list
+
 ## Installing
 
 Prebuilt binaries can be found at [kenku.fm](https://www.kenku.fm) or from the [GitHub releases](https://github.com/owlbear-rodeo/kenku-fm/releases).
