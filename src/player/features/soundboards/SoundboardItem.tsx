@@ -44,7 +44,7 @@ export function SoundboardItem({
       <CardActionArea onClick={() => onSelect(soundboard.id)}>
         <CardMedia
           component="img"
-          height="200px"
+          height="100px"
           image={image}
           alt={"Background"}
           sx={{ pointerEvents: "none" }}

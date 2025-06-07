@@ -8,6 +8,9 @@ import AddIcon from "@mui/icons-material/AddCircleRounded";
 import Stack from "@mui/material/Stack";
 import Link from "@mui/material/Link";
 import Tooltip from "@mui/material/Tooltip";
+import TextField from "@mui/material/TextField";
+import InputAdornment from "@mui/material/InputAdornment";
+import SearchIcon from "@mui/icons-material/Search";
 
 import { useSelector } from "react-redux";
 import { RootState } from "../../app/store";
@@ -45,15 +48,32 @@ export function Home({ onPlayTrack, onPlaySound }: HomeProps) {
   const playlists = useSelector((state: RootState) => state.playlists);
   const soundboards = useSelector((state: RootState) => state.soundboards);
 
-  const playlistItems = playlists.playlists.allIds
-    .slice(0, 4)
-    .map((id) => playlists.playlists.byId[id]);
-  const soundboardItems = soundboards.soundboards.allIds
-    .slice(0, 4)
-    .map((id) => soundboards.soundboards.byId[id]);
-
   const [playlistAddOpen, setPlaylistAddOpen] = useState(false);
   const [soundboardAddOpen, setSoundboardAddOpen] = useState(false);
+  const [playlistSearchTerm, setPlaylistSearchTerm] = useState("");
+  const [soundboardSearchTerm, setSoundboardSearchTerm] = useState("");
+
+  const allPlaylistItems = playlists.playlists.allIds
+    .map((id) => playlists.playlists.byId[id]);
+  
+  const playlistItems = allPlaylistItems.filter(playlist => 
+    playlist.title.toLowerCase().includes(playlistSearchTerm.toLowerCase())
+  );
+  
+  const allSoundboardItems = soundboards.soundboards.allIds
+    .map((id) => soundboards.soundboards.byId[id]);
+  
+  const soundboardItems = allSoundboardItems.filter(soundboard => 
+    soundboard.title.toLowerCase().includes(soundboardSearchTerm.toLowerCase())
+  );
+
+  const handlePlaylistSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setPlaylistSearchTerm(event.target.value);
+  };
+
+  const handleSoundboardSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSoundboardSearchTerm(event.target.value);
+  };
 
   return (
     <Container
@@ -83,22 +103,42 @@ export function Home({ onPlayTrack, onPlaySound }: HomeProps) {
               </IconButton>
             </Tooltip>
             <Box sx={{ flexGrow: 1 }} />
-            <Link color="inherit" underline="hover" component={PlaylistsLink}>
-              See All
-            </Link>
+            <TextField
+              placeholder="Search playlists"
+              variant="outlined"
+              size="small"
+              value={playlistSearchTerm}
+              onChange={handlePlaylistSearch}
+              sx={{ width: '200px' }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+            />
           </Stack>
         </CardContent>
         <CardContent>
           <Grid container spacing={2}>
-            {playlistItems.map((playlist) => (
-              <Grid xs={6} sm={4} md={3} item key={playlist.id}>
-                <PlaylistItem
-                  playlist={playlist}
-                  onSelect={(id) => navigate(`/playlists/${id}`)}
-                  onPlay={onPlayTrack}
-                />
+            {playlistItems.length > 0 ? (
+              playlistItems.map((playlist) => (
+                <Grid xs={6} sm={4} md={3} item key={playlist.id}>
+                  <PlaylistItem
+                    playlist={playlist}
+                    onSelect={(id) => navigate(`/playlists/${id}`)}
+                    onPlay={onPlayTrack}
+                  />
+                </Grid>
+              ))
+            ) : (
+              <Grid item xs={12}>
+                <Typography align="center" color="text.secondary">
+                  No playlists found matching "{playlistSearchTerm}"
+                </Typography>
               </Grid>
-            ))}
+            )}
           </Grid>
         </CardContent>
       </Card>
@@ -119,22 +159,42 @@ export function Home({ onPlayTrack, onPlaySound }: HomeProps) {
               </IconButton>
             </Tooltip>
             <Box sx={{ flexGrow: 1 }} />
-            <Link color="inherit" underline="hover" component={SoundboardsLink}>
-              See All
-            </Link>
+            <TextField
+              placeholder="Search soundboards"
+              variant="outlined"
+              size="small"
+              value={soundboardSearchTerm}
+              onChange={handleSoundboardSearch}
+              sx={{ width: '200px' }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+            />
           </Stack>
         </CardContent>
         <CardContent>
           <Grid container spacing={2}>
-            {soundboardItems.map((soundboard) => (
-              <Grid xs={6} sm={4} md={3} item key={soundboard.id}>
-                <SoundboardItem
-                  soundboard={soundboard}
-                  onSelect={(id) => navigate(`/soundboards/${id}`)}
-                  onPlay={onPlaySound}
-                />
+            {soundboardItems.length > 0 ? (
+              soundboardItems.map((soundboard) => (
+                <Grid xs={6} sm={4} md={3} item key={soundboard.id}>
+                  <SoundboardItem
+                    soundboard={soundboard}
+                    onSelect={(id) => navigate(`/soundboards/${id}`)}
+                    onPlay={onPlaySound}
+                  />
+                </Grid>
+              ))
+            ) : (
+              <Grid item xs={12}>
+                <Typography align="center" color="text.secondary">
+                  No soundboards found matching "{soundboardSearchTerm}"
+                </Typography>
               </Grid>
-            ))}
+            )}
           </Grid>
         </CardContent>
       </Card>

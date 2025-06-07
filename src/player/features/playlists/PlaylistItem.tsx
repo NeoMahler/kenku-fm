@@ -65,7 +65,7 @@ export function PlaylistItem({
       <CardActionArea onClick={() => onSelect(playlist.id)}>
         <CardMedia
           component="img"
-          height="200px"
+          height="100px"
           image={image}
           alt={"Background"}
           sx={{ pointerEvents: "none" }}
