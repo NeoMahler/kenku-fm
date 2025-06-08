@@ -9,12 +9,14 @@ import {
   updatePlayback,
   updateQueue,
   stopTrack,
+  setGapWaiting, // Add this import
 } from "./playlistPlaybackSlice";
 import { Track } from "./playlistsSlice";
 
 export function usePlaylistPlayback(onError: (message: string) => void) {
   const trackRef = useRef<Howl | null>(null);
   const animationRef = useRef<number | null>(null);
+  const gapTimerRef = useRef<number | null>(null); // Add ref for gap timer
 
   const playlists = useSelector((state: RootState) => state.playlists);
   const store = useStore<RootState>();
@@ -31,8 +33,20 @@ export function usePlaylistPlayback(onError: (message: string) => void) {
   );
   const dispatch = useDispatch();
 
+  // Clear any active gap timer
+  const clearGapTimer = useCallback(() => {
+    if (gapTimerRef.current !== null) {
+      window.clearTimeout(gapTimerRef.current);
+      gapTimerRef.current = null;
+      dispatch(setGapWaiting(false)); // Set waiting state to false when clearing timer
+    }
+  }, [dispatch]);
+
   const play = useCallback(
     (track: Track) => {
+      // Clear any existing gap timer when manually playing
+      clearGapTimer();
+      
       let prevTrack = trackRef.current;
       function removePrevTrack() {
         if (prevTrack) {
@@ -99,21 +113,63 @@ export function usePlaylistPlayback(onError: (message: string) => void) {
         error();
       }
     },
-    [onError, muted, store]
+    [onError, muted, store, dispatch, clearGapTimer]
   );
 
+  // Function to handle playing the next track with the gap
+  const playNextTrackWithGap = useCallback((id: string, index: number) => {
+    // Get the current gap setting from the store
+    const currentGap = store.getState().playlistPlayback.gap;
+    
+    // If no gap, play immediately
+    if (currentGap <= 0) {
+      const nextTrack = playlists.tracks[id];
+      if (nextTrack) {
+        play(nextTrack);
+        dispatch(updateQueue(index));
+      }
+      return;
+    }
+    
+    // Clear any existing timer
+    clearGapTimer();
+    
+    // Set waiting state to true
+    dispatch(setGapWaiting(true));
+    
+    // Set a timer for the specified gap
+    gapTimerRef.current = window.setTimeout(() => {
+      dispatch(setGapWaiting(false)); // Clear waiting state when gap ends
+      const nextTrack = playlists.tracks[id];
+      if (nextTrack) {
+        play(nextTrack);
+        dispatch(updateQueue(index));
+      }
+      gapTimerRef.current = null;
+    }, currentGap * 1000);
+  }, [play, playlists, dispatch, store, clearGapTimer]);
+
   const seek = useCallback((to: number) => {
+    // Clear any gap timer when seeking
+    clearGapTimer();
+    
     dispatch(updatePlayback(to));
     trackRef.current?.seek(to);
-  }, []);
+  }, [dispatch, clearGapTimer]);
 
   const stop = useCallback(() => {
+    // Clear any gap timer when stopping
+    clearGapTimer();
+    
     dispatch(playPause(false));
     dispatch(updatePlayback(0));
     trackRef.current?.stop();
-  }, []);
+  }, [dispatch, clearGapTimer]);
 
   const next = useCallback(() => {
+    // Clear any existing gap timer
+    clearGapTimer();
+    
     if (!trackRef.current) {
       return;
     }
@@ -144,18 +200,17 @@ export function usePlaylistPlayback(onError: (message: string) => void) {
           // Playing the same track just restart it
           seek(0);
         } else {
-          // Play the previous track
-          const previousTrack = playlists.tracks[id];
-          if (previousTrack) {
-            play(previousTrack);
-            dispatch(updateQueue(index));
-          }
+          // Play the next track with gap
+          playNextTrackWithGap(id, index);
         }
       }
     }
-  }, [repeat, queue, shuffle, playbackTrack, playlists, seek, play, stop]);
+  }, [repeat, queue, shuffle, playbackTrack, seek, stop, playNextTrackWithGap, clearGapTimer]);
 
   const previous = useCallback(() => {
+    // Clear any gap timer when going to previous
+    clearGapTimer();
+    
     if (!trackRef.current) {
       return;
     }
@@ -188,16 +243,16 @@ export function usePlaylistPlayback(onError: (message: string) => void) {
           // Playing the same track just restart it
           seek(0);
         } else {
-          // Play the next track
-          const nextTrack = playlists.tracks[id];
-          if (nextTrack) {
-            play(nextTrack);
+          // For previous, always play immediately (no gap)
+          const previousTrack = playlists.tracks[id];
+          if (previousTrack) {
+            play(previousTrack);
             dispatch(updateQueue(index));
           }
         }
       }
     }
-  }, [repeat, queue, shuffle, playbackTrack, playlists, seek, play, stop]);
+  }, [repeat, queue, shuffle, playbackTrack, playlists, seek, play, stop, dispatch, clearGapTimer]);
 
   useEffect(() => {
     const track = trackRef.current;
@@ -230,12 +285,8 @@ export function usePlaylistPlayback(onError: (message: string) => void) {
             seek(0);
             track?.play();
           } else {
-            // Play the next track
-            const nextTrack = playlists.tracks[id];
-            if (nextTrack) {
-              play(nextTrack);
-              dispatch(updateQueue(index));
-            }
+            // This is where automatic playback happens - apply the gap here
+            playNextTrackWithGap(id, index);
           }
         }
       }
@@ -244,9 +295,12 @@ export function usePlaylistPlayback(onError: (message: string) => void) {
     return () => {
       track?.off("end", handleEnd);
     };
-  }, [repeat, queue, shuffle, playbackTrack, playlists, play, seek, stop]);
+  }, [repeat, queue, shuffle, playbackTrack, playlists, play, seek, stop, playNextTrackWithGap]);
 
   const pauseResume = useCallback((resume: boolean) => {
+    // Clear any gap timer when manually pausing/resuming
+    clearGapTimer();
+    
     if (trackRef.current) {
       if (resume) {
         trackRef.current.play();
@@ -254,7 +308,7 @@ export function usePlaylistPlayback(onError: (message: string) => void) {
         trackRef.current.pause();
       }
     }
-  }, []);
+  }, [clearGapTimer]);
 
   const mute = useCallback((muted: boolean) => {
     if (trackRef.current) {
@@ -267,6 +321,16 @@ export function usePlaylistPlayback(onError: (message: string) => void) {
       trackRef.current.volume(volume);
     }
   }, []);
+
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      clearGapTimer();
+      if (animationRef.current !== null) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [clearGapTimer]);
 
   return {
     seek,

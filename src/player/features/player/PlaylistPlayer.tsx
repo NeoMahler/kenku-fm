@@ -17,6 +17,8 @@ import Shuffle from "@mui/icons-material/ShuffleRounded";
 import Next from "@mui/icons-material/SkipNextRounded";
 import Previous from "@mui/icons-material/SkipPreviousRounded";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import TextField from "@mui/material/TextField";
+import InputAdornment from "@mui/material/InputAdornment";
 
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../app/store";
@@ -26,6 +28,7 @@ import {
   mute,
   shuffle,
   repeat,
+  setGap, // Add this import
 } from "../playlists/playlistPlaybackSlice";
 
 const TimeSlider = styled(Slider)({
@@ -167,6 +170,7 @@ function Controls({
         flexGrow: 1,
       }}
     >
+      <GapControl />
       <IconButton aria-label="shuffle" onClick={handleShuffle}>
         <Shuffle color={playbackShuffle ? "primary" : undefined} />
       </IconButton>
@@ -205,6 +209,82 @@ function Controls({
         )}
       </IconButton>
     </Box>
+  );
+}
+
+// Add a new component for the gap control
+function GapControl() {
+  const dispatch = useDispatch();
+  const gap = useSelector((state: RootState) => state.playlistPlayback.gap);
+  const gapWaiting = useSelector(
+    (state: RootState) => state.playlistPlayback.gapWaiting
+  );
+  const [inputValue, setInputValue] = useState(gap.toString());
+
+  const handleGapChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(event.target.value);
+
+    // Parse as number and ensure it's not negative
+    const gapValue = Math.max(0, parseInt(event.target.value) || 0);
+
+    // Only dispatch if it's a valid number
+    if (!isNaN(gapValue)) {
+      dispatch(setGap(gapValue));
+    }
+  };
+
+  return (
+    <TextField
+      label="Gap"
+      value={inputValue}
+      onChange={handleGapChange}
+      InputProps={{
+        endAdornment: (
+          <InputAdornment position="end" sx={{ ml: 0, pl: 0 }}>
+            s
+          </InputAdornment>
+        ),
+        sx: gapWaiting
+          ? {
+              animation: "pulse 1.5s infinite",
+              "@keyframes pulse": {
+                "0%": { opacity: 0.4 },
+                "50%": { opacity: 1 },
+                "100%": { opacity: 0.4 },
+              },
+            }
+          : {},
+      }}
+      variant="outlined"
+      size="small"
+      type="number"
+      disabled={gapWaiting}
+      InputLabelProps={{
+        shrink: true,
+      }}
+      sx={{
+        width: "70px", 
+        mr: 1,
+        "& .MuiOutlinedInput-input": {
+          px: 1,
+          // Remove spinner arrows
+          "&::-webkit-outer-spin-button, &::-webkit-inner-spin-button": {
+            "-webkit-appearance": "none",
+            margin: 0,
+          },
+        },
+        "& .MuiInputAdornment-root": {
+          marginLeft: 0,
+          "& p": {
+            paddingLeft: 0,
+          }
+        },
+        "& .Mui-disabled": {
+          color: gapWaiting ? "primary.main" : undefined,
+          WebkitTextFillColor: gapWaiting ? "unset" : undefined,
+        },
+      }}
+    />
   );
 }
 

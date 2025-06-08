@@ -26,6 +26,8 @@ export interface PlaylistPlaybackState {
   repeat: Repeat;
   track?: Track;
   playback?: Playback;
+  gap: number; // Add this to store the gap duration in seconds
+  gapWaiting: boolean; // New state to track if we're waiting during a gap
 }
 
 const initialState: PlaylistPlaybackState = {
@@ -34,6 +36,8 @@ const initialState: PlaylistPlaybackState = {
   muted: false,
   shuffle: false,
   repeat: "playlist",
+  gap: 0, // Add this to store the gap duration in seconds
+  gapWaiting: false, // New state to track if we're waiting during a gap
 };
 
 export const playlistPlaybackSlice = createSlice({
@@ -159,6 +163,12 @@ export const playlistPlaybackSlice = createSlice({
     repeat: (state, action: PayloadAction<Repeat>) => {
       state.repeat = action.payload;
     },
+    setGap: (state, action: PayloadAction<number>) => {
+      state.gap = action.payload;
+    },
+    setGapWaiting: (state, action: PayloadAction<boolean>) => {
+      state.gapWaiting = action.payload;
+    },
   },
 });
 
@@ -175,6 +185,8 @@ export const {
   mute,
   shuffle,
   repeat,
+  setGap,
+  setGapWaiting,
 } = playlistPlaybackSlice.actions;
 
 export default playlistPlaybackSlice.reducer;
