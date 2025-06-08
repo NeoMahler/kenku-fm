@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 import styled from "@mui/material/styles/styled";
 import Box from "@mui/material/Box";
@@ -23,19 +24,43 @@ const SoundProgress = styled(LinearProgress)({
   },
 });
 
+// Use a styled version of Chip to add hover effects
+const ClickableChip = styled(Chip)(({ theme }) => ({
+  cursor: "pointer",
+  "&:hover": {
+    backgroundColor: theme.palette.primary.dark,
+  },
+}));
+
 type SoundboardPlayerProps = {
   onSoundboardStop: (id: string) => void;
 };
 
 export function SoundboardPlayer({ onSoundboardStop }: SoundboardPlayerProps) {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const soundboardPlayback = useSelector(
     (state: RootState) => state.soundboardPlayback
   );
 
+  const soundboards = useSelector((state: RootState) => state.soundboards);
+
   function handleSoundboardStop(id: string) {
     dispatch(stopSound(id));
     onSoundboardStop(id);
+  }
+
+  function handleChipClick(sound: any) {
+    // Look up the soundboard for this sound using the sound's ID
+    // We need to find which soundboard this sound belongs to
+    for (const boardId of Object.keys(soundboards.soundboards.byId)) {
+      const soundboard = soundboards.soundboards.byId[boardId];
+      if (soundboard.sounds.includes(sound.id)) {
+        navigate(`/soundboards/${boardId}`);
+        return;
+      }
+    }
   }
 
   const sounds = Object.values(soundboardPlayback.playback);
@@ -46,18 +71,25 @@ export function SoundboardPlayer({ onSoundboardStop }: SoundboardPlayerProps) {
 
   return (
     <Stack direction="row" gap={1} pb={1} overflow="auto">
-      {sounds.map((sound) => (
-        <Box sx={{ position: "relative" }} key={sound.id}>
-          <SoundProgress
-            variant="determinate"
-            value={Math.min((sound.progress / sound.duration) * 100, 100)}
-          />
-          <Chip
-            label={sound.title}
-            onDelete={() => handleSoundboardStop(sound.id)}
-          />
-        </Box>
-      ))}
+      {sounds.map((sound) => {
+        return (
+          <Box sx={{ position: "relative" }} key={sound.id}>
+            <SoundProgress
+              variant="determinate"
+              value={Math.min((sound.progress / sound.duration) * 100, 100)}
+            />
+            <ClickableChip
+              label={sound.title}
+              onClick={() => handleChipClick(sound)}
+              onDelete={() => handleSoundboardStop(sound.id)}
+              sx={{
+                position: "relative",
+                zIndex: 1,
+              }}
+            />
+          </Box>
+        );
+      })}
     </Stack>
   );
 }

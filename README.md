@@ -16,7 +16,9 @@ Kenku FM is a desktop application for Windows, MacOS and Linux designed to be th
 ## What's in this fork?
 I forked this to tweak the program to better fits my needs. So far these are main the differences:
 - All playlists and soundboards appear in the main view/dashboard (i.e. there's no "see all" button anymore)
-- There are search bars in the playlists and soundboards panels to filter through the list
+- Added search bars in the playlists and soundboards panels to filter through the list
+- Added a "waiting time" feature: use the "gap" text field in the audio player with a number of seconds to wait between tracks (defaults to 0)
+- Easier navigation from audio player: Within the audio player, clicking on the playlist name will open the playlist. Similarly, clicking on a "sound chip" will open its soundboard.
 
 ## Installing
 

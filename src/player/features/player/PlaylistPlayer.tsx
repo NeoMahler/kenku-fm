@@ -19,6 +19,7 @@ import Previous from "@mui/icons-material/SkipPreviousRounded";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
+import { useNavigate } from "react-router-dom";
 
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../app/store";
@@ -86,8 +87,18 @@ function Title() {
   const queue = useSelector((state: RootState) => state.playlistPlayback.queue);
   const track = useSelector((state: RootState) => state.playlistPlayback.track);
   const noTrack = track?.title === undefined;
+  const dispatch = useDispatch();
+  const navigate = useNavigate(); // Import useNavigate from react-router-dom
 
   const large = useMediaQuery("(min-width: 500px)");
+
+  // Handle click on playlist title
+  const handlePlaylistClick = () => {
+    if (!noTrack && queue?.playlistId) {
+      // Navigate to the playlist page
+      navigate(`/playlists/${queue.playlistId}`);
+    }
+  };
 
   return (
     <Box
@@ -110,8 +121,17 @@ function Title() {
       <Typography
         variant="caption"
         color="rgba(255, 255, 255, 0.8)"
-        sx={{ width: "100%", textAlign: large ? undefined : "center" }}
+        sx={{ 
+          width: "100%", 
+          textAlign: large ? undefined : "center",
+          cursor: noTrack ? "default" : "pointer",
+          "&:hover": {
+            textDecoration: noTrack ? "none" : "underline",
+            color: noTrack ? undefined : "primary.main",
+          },
+        }}
         noWrap
+        onClick={handlePlaylistClick}
       >
         {noTrack ? "" : playlists.playlists.byId[queue.playlistId]?.title}
       </Typography>
