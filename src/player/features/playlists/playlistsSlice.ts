@@ -11,6 +11,7 @@ export interface Playlist {
   background: string;
   title: string;
   id: string;
+  midiNote?: { note: number; channel: number; velocity: number }; // Add MIDI note support
 }
 
 export interface PlaylistsState {
@@ -46,14 +47,27 @@ export const playlistsSlice = createSlice({
         (id) => id !== action.payload
       );
     },
-    editPlaylist: (state, action: PayloadAction<Partial<Playlist>>) => {
-      if (!action.payload.id) {
-        throw Error("Id needed in editPlaylist payload");
+    editPlaylist: (
+      state,
+      action: PayloadAction<{
+        id: string;
+        title?: string;
+        background?: string;
+        midiNote?: { note: number; channel: number; velocity: number } | null;
+      }>
+    ) => {
+      const { id, ...changes } = action.payload;
+      const playlist = state.playlists.byId[id];
+
+      if (playlist) {
+        // If midiNote is explicitly null, remove the property
+        if (changes.midiNote === null) {
+          const { midiNote, ...rest } = playlist;
+          state.playlists.byId[id] = { ...rest, ...changes };
+        } else {
+          state.playlists.byId[id] = { ...playlist, ...changes };
+        }
       }
-      state.playlists.byId[action.payload.id] = {
-        ...state.playlists.byId[action.payload.id],
-        ...action.payload,
-      };
     },
     addTrack: (
       state,
@@ -117,6 +131,34 @@ export const playlistsSlice = createSlice({
       playlist.tracks.splice(oldIndex, 1);
       playlist.tracks.splice(newIndex, 0, action.payload.active);
     },
+    // Add a specific action for setting MIDI note
+    setPlaylistMidiNote: (
+      state,
+      action: PayloadAction<{
+        id: string;
+        midiNote: { note: number; channel: number; velocity: number };
+      }>
+    ) => {
+      const { id, midiNote } = action.payload;
+      const playlist = state.playlists.byId[id];
+
+      if (playlist) {
+        state.playlists.byId[id] = { ...playlist, midiNote };
+      }
+    },
+    // Add action to clear MIDI note
+    clearPlaylistMidiNote: (
+      state,
+      action: PayloadAction<{ id: string }>
+    ) => {
+      const { id } = action.payload;
+      const playlist = state.playlists.byId[id];
+
+      if (playlist) {
+        const { midiNote, ...rest } = playlist;
+        state.playlists.byId[id] = rest;
+      }
+    },
   },
 });
 
@@ -130,6 +172,8 @@ export const {
   removeTrack,
   editTrack,
   moveTrack,
+  setPlaylistMidiNote,
+  clearPlaylistMidiNote,
 } = playlistsSlice.actions;
 
 export default playlistsSlice.reducer;
