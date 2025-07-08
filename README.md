@@ -2,23 +2,16 @@
 
 # Kenku FM
 
-Kenku FM is a desktop application for Windows, MacOS and Linux designed to be the easiest way to share music in a Discord voice call.
+Kenku FM is a desktop application for Windows, MacOS and Linux designed to be the easiest way to share music in a Discord voice call. This fork is focused on local music playback and adds several features for this purpose while keeping all features from the main version of the app.
 
-- Use the Kenku Player interface to share your **local music** and sound effects to your discord calls.
-- Use the built in web browser to share audio from your favourite websites like **YouTube** and **Spotify**.
-- Trigger and control sounds with the Kenku FM plugin for the **Elgato Stream Deck**.
-- If you already have a **virtual audio cable** setup use Kenku FM as an easy way to connect to Discord with your existing software.
+## Fork features
+This fork includes the following features and changes:
 
-<p align="center">
-  <img src="./docs/example.png" alt="Kenku FM Interface" width="738">
-</p>
-
-## What's in this fork?
-I forked this to tweak the program to better fits my needs. So far these are main the differences:
-- All playlists and soundboards appear in the main view/dashboard (i.e. there's no "see all" button anymore)
-- Added search bars in the playlists and soundboards panels to filter through the list
-- Added a "waiting time" feature: use the "gap" text field in the audio player with a number of seconds to wait between tracks (defaults to 0)
+- All playlists and soundboards appear in the main view/dashboard (i.e. there's no "see all" button anymore).
+- There are search bars in the playlists and soundboards panels to filter through the list.
+- A new "track gap" feature: use the "gap" text field in the audio player with a number of seconds to wait between tracks (defaults to 0). Soundboards are not affected by this gap.
 - Easier navigation from audio player: Within the audio player, clicking on the playlist name will open the playlist. Similarly, clicking on a "sound chip" will open its soundboard.
+- MIDI-controlled playlists: assign MIDI inputs to playlists when creating or editing them. Then, use that same input to play the selected playlist. More MIDI controlled-based functionality to come later.
 
 ## Installing
 
