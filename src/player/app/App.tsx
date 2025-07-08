@@ -21,6 +21,7 @@ import { Soundboard } from "../features/soundboards/Soundboard";
 import { useSoundboardPlayback } from "../features/soundboards/useSoundboardPlayback";
 import { SoundboardRemote } from "../features/soundboards/SoundboardRemote";
 import { SoundboardPlaybackSync } from "../features/soundboards/SoundboardPlaybackSync";
+import { MidiListener } from "../features/midi/MidiListener";
 
 const WallPaper = styled("div")({
   position: "fixed",
@@ -105,6 +106,7 @@ export function App() {
       >
         <Alert severity="error">{errorMessage}</Alert>
       </Snackbar>
+      <MidiListener onPlay={playlist.play}/>
     </>
   );
 }

@@ -107,18 +107,12 @@ export function PlaylistSettings({
             
             {/* Display Current MIDI Assignment */}
             {midiData && (
-              <Box sx={{ mt: 2, p: 2, backgroundColor: 'grey.100', borderRadius: 1 }}>
+              <Box sx={{ mt: 2, p: 2, backgroundColor: '#3B3D4B', borderRadius: 1 }}>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Assigned MIDI Note:
+                  MIDI input for this playlist:
                 </Typography>
                 <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                  Note: {midiData.note} ({formatMidiNote(midiData)})
-                </Typography>
-                <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                  Channel: {midiData.channel + 1}
-                </Typography>
-                <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                  Velocity: {midiData.velocity}
+                  Note {midiData.note} ({formatMidiNote(midiData)}) on channel {midiData.channel + 1}
                 </Typography>
                 <Button 
                   size="small" 
